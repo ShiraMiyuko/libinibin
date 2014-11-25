@@ -7,7 +7,7 @@
     <ProjectGuid>{211C1834-ED6F-46B6-A7F6-59033DC910D5}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>libinibin</RootNamespace>
+    <RootNamespace>Dargon.LeagueOfLegends</RootNamespace>
     <AssemblyName>libinibin</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -34,7 +34,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="libwarty">
+    <Reference Include="libwarty, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>packages\libwarty.0.0.14\lib\portable-net45+netcore45+MonoAndroid1+MonoTouch1\libwarty.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -47,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CharacterInibinKeyHashes.cs" />
+    <Compile Include="InibinLoader.cs" />
     <Compile Include="InibinProperty.cs" />
     <Compile Include="InibinTroybinDataSection.cs" />
     <Compile Include="InibinTroybinFile.cs" />
