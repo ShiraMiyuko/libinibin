@@ -49,10 +49,8 @@
   <ItemGroup>
     <Compile Include="CharacterInibinKeyHashes.cs" />
     <Compile Include="InibinLoader.cs" />
-    <Compile Include="InibinProperty.cs" />
     <Compile Include="InibinTroybinDataSection.cs" />
     <Compile Include="InibinTroybinFile.cs" />
-    <Compile Include="InibinTroybinFile.Reader.cs" />
     <Compile Include="InibinTroybinFile.Writer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
