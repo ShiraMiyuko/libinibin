@@ -168,7 +168,7 @@ namespace Dargon.LeagueOfLegends {
       /// </summary>
       /// <param name="reader">The BinaryReader to use. AKA, where you want the data to be read from</param>
       private static void ReadStrings(BinaryReader reader, Inibin inibin) {
-         UInt32[] keys = ReadKeys(reader);
+         var keys = ReadKeys(reader);
 
          //
          // New method to read the newer .inibins.
@@ -180,11 +180,11 @@ namespace Dargon.LeagueOfLegends {
 
          long strSectionOffset = reader.BaseStream.Position + keys.Length * 2;
 
-         for (int i = 0; i < keys.Length; i++) {
+         foreach (var key in keys) {
             UInt16 offset = reader.ReadUInt16();
             using (new TemporarySeek(reader.BaseStream, strSectionOffset + offset)) {
                string val = reader.ReadNullTerminatedString();
-               inibin.Set(keys[i], val);
+               inibin.Set(key, val);
             }
          }
       }
