@@ -26,5 +26,9 @@ namespace Dargon.LeagueOfLegends {
       /// <para> Ex: Properties[(uint)CharacterInibinKeyHashes.SkinOneName)]</para>
       /// </summary>
       public IReadOnlyDictionary<uint, object> Properties { get { return properties; } }
+
+      public void Set(uint key, object value) {
+         properties.Add(key, value);
+      }
    }
 }
