@@ -10,79 +10,29 @@ using ItzWarty.Collections;
 
 namespace Dargon.LeagueOfLegends {
    public class InibinLoader : IInibinLoader {
-      private static readonly IReadOnlyDictionary<InibinTroybinDataSection, Func<BinaryReader, object>> readersByDataType = new Dictionary<InibinTroybinDataSection, Func<BinaryReader, object>> {
-         {InibinTroybinDataSection.Byte, reader => reader.ReadByte()},
-         {InibinTroybinDataSection.UShort, reader => reader.ReadUInt16()}
-                  break;
-               case InibinTroybinDataSection.UInt:
-                  val = reader.ReadUInt32();
-                  break;
-               case InibinTroybinDataSection.Float:
-                  val = reader.ReadSingle();
-                  break;
-               case InibinTroybinDataSection.SmallFloats:
-                  val = reader.ReadByte() * 0.1f;
-                  break;
-               case InibinTroybinDataSection.Vector2Byte: 
-               {
-                  byte x = reader.ReadByte();
-                  byte y = reader.ReadByte();
-                  val = new Vector2<byte>(x, y);
-                  break;
-               }
-               case InibinTroybinDataSection.Vector2Float: 
-               {
-                  float x = reader.ReadSingle();
-                  float y = reader.ReadSingle();
-                  val = new Vector2<float>(x, y);
-                  break;
-               }
-               case InibinTroybinDataSection.Vector3Byte: 
-               {
-                  byte x = reader.ReadByte();
-                  byte y = reader.ReadByte();
-                  byte z = reader.ReadByte();
-                  val = new Vector3<byte>(x, y, z);
-                  break;
-               }
-               case InibinTroybinDataSection.Vector3Float: 
-               {
-                  float x = reader.ReadSingle();
-                  float y = reader.ReadSingle();
-                  float z = reader.ReadSingle();
-                  val = new Vector3<float>(x, y, z);
-                  break;
-               }
-               case InibinTroybinDataSection.Vector4Byte: 
-               {
-                  byte x = reader.ReadByte();
-                  byte y = reader.ReadByte();
-                  byte z = reader.ReadByte();
-                  byte w = reader.ReadByte();
-                  val = new Vector4<byte>(x, y, z, w);
-                  break;
-               }
-               case InibinTroybinDataSection.Vector4Float: 
-               {
-                  float x = reader.ReadSingle();
-                  float y = reader.ReadSingle();
-                  float z = reader.ReadSingle();
-                  float w = reader.ReadSingle();
-                  val = new Vector4<float>(x, y, z, w);
-                  break;
-               }
-            }
-      )
+      private static readonly IReadOnlyDictionary<InibinTroybinDataSection, Func<BinaryReader, object>> kReadersByDataType = new Dictionary<InibinTroybinDataSection, Func<BinaryReader, object>> {
+         { InibinTroybinDataSection.Byte, reader => reader.ReadByte() },
+         { InibinTroybinDataSection.UShort, reader => reader.ReadUInt16() },
+         { InibinTroybinDataSection.UInt, reader => reader.ReadUInt32() },
+         { InibinTroybinDataSection.Float, reader => reader.ReadSingle() },
+         { InibinTroybinDataSection.SmallFloats, reader => reader.ReadByte() * 0.1f },
+         { InibinTroybinDataSection.Vector2Byte, reader => new Vector2<byte>(reader.ReadByte(), reader.ReadByte()) },
+         { InibinTroybinDataSection.Vector2Float, reader => new Vector2<float>(reader.ReadSingle(), reader.ReadSingle()) },
+         { InibinTroybinDataSection.Vector3Byte, reader => new Vector3<byte>(reader.ReadByte(), reader.ReadByte(), reader.ReadByte()) },
+         { InibinTroybinDataSection.Vector3Float, reader => new Vector3<float>(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()) },
+         { InibinTroybinDataSection.Vector4Byte, reader => new Vector4<byte>(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte()) },
+         { InibinTroybinDataSection.Vector4Float, reader => new Vector4<float>(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle()) }
+      };
 
       public IInibin Load(Stream stream) {
-         using (var reader = new BinaryReader(stream)) {
-            // Read Header
+         using (var reader = new BinaryReader(stream, Encoding.UTF8, true)) {
             var version = reader.ReadByte();
             var oldLength = reader.ReadUInt16();
             var format = reader.ReadUInt16();
 
             var inibin = new Inibin(version, oldLength, format);
             ParseInibin(reader, inibin);
+            return inibin;
          }
       }
 
@@ -164,9 +114,7 @@ namespace Dargon.LeagueOfLegends {
       /// <param name="reader">The BinaryReader to use. AKA, where you want the data to be read from</param>
       /// <returns>uint[] containing the keys</returns>
       private static UInt32[] ReadKeys(BinaryReader reader) {
-         // Number of key value pairs
-         ushort count = reader.ReadUInt16();
-
+         var count = reader.ReadUInt16();
          return Util.Generate(count, i => reader.ReadUInt32());
       }
 
@@ -175,15 +123,11 @@ namespace Dargon.LeagueOfLegends {
       /// </summary>
       /// <param name="reader">The BinaryReader to use. AKA, where you want the data to be read from</param>
       /// <param name="section">The data type of the values</param>
-      private static void ReadValues(BinaryReader reader, ref Dictionary<uint, object> properties, InibinTroybinDataSection section) {
-         // Read the keys
+      private static void ReadValues(BinaryReader reader, Inibin inibin, InibinTroybinDataSection section) {
          var keys = ReadKeys(reader);
-
-         // Iterate through the keys and read a value for each one
-         // Do NOT convert this to a foreach; foreach can not be guaranteed to be in a specific order
          foreach (var key in keys) {
-            object val = null;
-            properties.Add(key, val);
+            object value = kReadersByDataType[section](reader);
+            inibin.Set(key, value);
          }
       }
 
@@ -192,33 +136,28 @@ namespace Dargon.LeagueOfLegends {
       /// Boolean Values are stored in single bits so the code couldn't conform to ReadValues
       /// </summary>
       /// <param name="reader">The BinaryReader to use. AKA, where you want the data to be read from</param>
-      private static void ReadBoolValues(BinaryReader reader, ref Dictionary<uint, object> properties) {
-         UInt32[] keys = ReadKeys(reader);
+      private static void ReadBoolValues(BinaryReader reader, Inibin inibin) {
+         var keys = ReadKeys(reader);
+         
+         // 8 values per byte: NumKeys / 8  (round up)
+         int numBytes = (keys.Length / 8) + (keys.Length % 8 > 0 ? 1 : 0);
 
-         // Believe it or not, RIOT will declare a section in the format, but have nothing in it. Fail...
-         if (keys != null) {
-            // 8 values per byte: NumKeys / 8  (round up)
-            int numBytes = (keys.Length / 8) + (keys.Length % 8 > 0 ? 1 : 0);
-
-            for (int i = 0; i < numBytes; i++) {
-               byte buffer = reader.ReadByte();
-               for (int j = 0; j < 8; j++) {
-                  // See if we're on the last key
-                  if ((i * 8) + j >= keys.Length) {
-                     break;
-                  }
-
-                  // Check if the bit is on
-                  bool val = (buffer & (1 << j)) == (1 << j);
-
-                  properties.Add(keys[(i * 8) + j], val);
+         for (int i = 0; i < numBytes; i++) {
+            byte octet = reader.ReadByte();
+            for (int j = 0; j < 8; j++) {
+               var index = i * 8 + j;
+               
+               // See if we're past the last key
+               if (index == keys.Length) {
+                  break;
                }
+
+               // Check if the bit is on
+               bool bit = (octet & (1 << j)) != 0;
+
+               inibin.Set(keys[index], bit);
             }
          }
-      }
-
-      private static string ReadNullTerminatedString() {
-         return null;
       }
 
       /// <summary>
@@ -227,7 +166,7 @@ namespace Dargon.LeagueOfLegends {
       /// So we read the keys, then the offsets, then use the offsets to read the null-terminated string data
       /// </summary>
       /// <param name="reader">The BinaryReader to use. AKA, where you want the data to be read from</param>
-      private static void ReadStrings(BinaryReader reader, ref Dictionary<uint, object> properties) {
+      private static void ReadStrings(BinaryReader reader, Inibin inibin) {
          UInt32[] keys = ReadKeys(reader);
 
          //
@@ -238,23 +177,13 @@ namespace Dargon.LeagueOfLegends {
          // is used for though.
          //
 
-         // Believe it or not, RIOT will declare a section in the format, but have nothing in it. Fail...
-         if (keys != null) {
-            long strSectionOffset = reader.BaseStream.Position + keys.Length * 2;
+         long strSectionOffset = reader.BaseStream.Position + keys.Length * 2;
 
-            for (int i = 0; i < keys.Length; i++) {
-               UInt16 offset = reader.ReadUInt16();
-
-               // Save the old position
-               Int64 oldPos = reader.BaseStream.Position;
-               reader.BaseStream.Seek(strSectionOffset + offset, SeekOrigin.Begin);
-
-               string val = /*reader.*/ReadNullTerminatedString();
-
-               // Return to the old position
-               reader.BaseStream.Seek(oldPos, SeekOrigin.Begin);
-
-               properties.Add(keys[i], val);
+         for (int i = 0; i < keys.Length; i++) {
+            UInt16 offset = reader.ReadUInt16();
+            using (new TemporarySeek(reader.BaseStream, strSectionOffset + offset)) {
+               string val = reader.ReadNullTerminatedString();
+               inibin.Set(keys[i], val);
             }
          }
       }
