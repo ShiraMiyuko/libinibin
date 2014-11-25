@@ -4,6 +4,13 @@ using System.IO;
 
 namespace Dargon.LeagueOfLegends {
    public class InibinTroybinFile {
+      public InibinTroybinFile() {
+         m_version = 0;
+         m_oldLength = 0;
+         m_format = 0;
+         Properties = new ReadOnlyDictionary<uint, object>(properties);
+      }
+
       public InibinTroybinFile(byte version, ushort oldLength, ushort format, Dictionary<uint, object> properties) {
          m_version = version;
          m_oldLength = oldLength;
