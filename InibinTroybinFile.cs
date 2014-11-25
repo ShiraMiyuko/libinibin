@@ -3,8 +3,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 
 namespace Dargon.LeagueOfLegends {
-   public partial class InibinTroybinFile {
       internal InibinTroybinFile(byte version, ushort oldLength, ushort format, Dictionary<uint, object> properties) {
+   public class InibinTroybinFile {
          m_version = version;
          m_oldLength = oldLength;
          m_format = format;
