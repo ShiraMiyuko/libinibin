@@ -125,8 +125,9 @@ namespace Dargon.LeagueOfLegends {
       /// <param name="section">The data type of the values</param>
       private static void ReadValues(BinaryReader reader, Inibin inibin, InibinTroybinDataSection section) {
          var keys = ReadKeys(reader);
+         var readValue = kReadersByDataType[section];
          foreach (var key in keys) {
-            object value = kReadersByDataType[section](reader);
+            object value = readValue(reader);
             inibin.Set(key, value);
          }
       }
