@@ -4,7 +4,7 @@ using System.IO;
 using ItzWarty;
 
 namespace Dargon.LeagueOfLegends {
-   public partial class InibinTroybinFile {
+   public class InibinWriter {
    //   /// <summary>
    //   /// Writes the inibin/trobyin to a byte[]
    //   /// </summary>
